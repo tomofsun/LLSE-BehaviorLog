@@ -1084,12 +1084,31 @@ if (settings.onContainerChange.LogToFile || settings.onContainerChange.LogToCons
         try {
             let pos = pl.pos;
             let blPos = bl.pos;
-            if (newItem.isNull())
+            if (!oldItem.isNull() && newItem.isNull()) {
                 writeLog(logToFile, logToConsole, noOutputContent,
                     i18n.$t("event.onContainerOut"), pos.dim, pl.realName, pos.x.toFixed(0), pos.y.toFixed(0), pos.z.toFixed(0), bl.name, blPos.x.toFixed(0), blPos.y.toFixed(0), blPos.z.toFixed(0), i18n.$t("detial.ContainOut",[slotNum,oldItem.count,oldItem.name]));
-            else
+            } else if (oldItem.isNull() && !newItem.isNull()) {
                 writeLog(logToFile, logToConsole, noOutputContent,
                     i18n.$t("event.onContainerIn"), pos.dim, pl.realName, pos.x.toFixed(0), pos.y.toFixed(0), pos.z.toFixed(0), bl.name, blPos.x.toFixed(0), blPos.y.toFixed(0), blPos.z.toFixed(0), i18n.$t("detial.ContainIn",[slotNum,newItem.count,newItem.name]));
+            } else {
+                if (oldItem.type === newItem.type) {
+                    if (oldItem.count < newItem.count) {
+                        // 物品增加堆叠
+                        writeLog(logToFile, logToConsole, noOutputContent,
+                            i18n.$t("event.onContainerIn"), pos.dim, pl.realName, pos.x.toFixed(0), pos.y.toFixed(0), pos.z.toFixed(0), bl.name, blPos.x.toFixed(0), blPos.y.toFixed(0), blPos.z.toFixed(0), i18n.$t("detial.ContainIn",[slotNum,newItem.count - oldItem.count,newItem.name]));
+                    } else if (oldItem.count > newItem.count) {
+                        // 物品减少堆叠
+                        writeLog(logToFile, logToConsole, noOutputContent,
+                            i18n.$t("event.onContainerOut"), pos.dim, pl.realName, pos.x.toFixed(0), pos.y.toFixed(0), pos.z.toFixed(0), bl.name, blPos.x.toFixed(0), blPos.y.toFixed(0), blPos.z.toFixed(0), i18n.$t("detial.ContainOut",[slotNum,oldItem.count - newItem.count,oldItem.name]));
+                    }
+                } else {
+                    // 物品替换
+                    writeLog(logToFile, logToConsole, noOutputContent,
+                        i18n.$t("event.onContainerOut"), pos.dim, pl.realName, pos.x.toFixed(0), pos.y.toFixed(0), pos.z.toFixed(0), bl.name, blPos.x.toFixed(0), blPos.y.toFixed(0), blPos.z.toFixed(0), i18n.$t("detial.ContainOut",[slotNum,oldItem.count,oldItem.name]));
+                    writeLog(logToFile, logToConsole, noOutputContent,
+                        i18n.$t("event.onContainerIn"), pos.dim, pl.realName, pos.x.toFixed(0), pos.y.toFixed(0), pos.z.toFixed(0), bl.name, blPos.x.toFixed(0), blPos.y.toFixed(0), blPos.z.toFixed(0), i18n.$t("detial.ContainIn",[slotNum,newItem.count,newItem.name]));
+                }
+            }
         }
         catch (exception) {
             if (_SHOW_ERROR_INFO) throw exception;
